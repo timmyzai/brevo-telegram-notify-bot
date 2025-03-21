@@ -1,0 +1,6 @@
+# config.py
+
+# Telegram Bot credentials
+TELEGRAM_BOT_TOKEN = "8059286525:AAFNSrhVCk9ygOW2IvxDb6e4BSPCQPaOhNE"
+TELEGRAM_CHAT_ID = "-4792671194"
+PORT = 6666

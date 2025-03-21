@@ -1,0 +1,5 @@
+Flask==3.1.0
+requests==2.32.3
+troposphere==4.9.0
+setuptools==77.0.3
+zappa==0.59.0

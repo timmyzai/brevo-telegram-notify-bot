@@ -1,0 +1,24 @@
+{
+    "staging": {
+        "app_function": "main.app",
+        "aws_region": "ap-southeast-1",
+        "exclude": [
+            "boto3",
+            "dateutil",
+            "botocore",
+            "s3transfer",
+            "concurrent"
+        ],
+        "profile_name": "default",
+        "project_name": "brevo-webhook",
+        "runtime": "python3.12",
+        "s3_bucket": "zappa-brevo-bot",
+        "environment_variables": {
+            "TELEGRAM_BOT_TOKEN": "8059286525:AAFNSrhVCk9ygOW2IvxDb6e4BSPCQPaOhNE",
+            "TELEGRAM_CHAT_ID": "-4792671194",
+            "PORT": "6666"
+        },
+        "keep_warm": false,
+        "slim_handler": true
+    }
+}
