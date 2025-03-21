@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from config import PORT
+from config import PORT, ENVIRONMENT
 from brevo_service import (
     load_blocked_emails,
     load_softbounce_emails,
@@ -14,6 +14,9 @@ def webhook():
     data = request.get_json()
     if not data:
         return jsonify({"status": "error", "message": "Invalid JSON"}), 400
+
+    if(data.get("tag") != ENVIRONMENT):
+        return jsonify({"status": "ignored", "message": "Environment mismatch"}), 200
 
     result, status = handle_event(data)
     return jsonify(result), status

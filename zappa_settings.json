@@ -10,13 +10,14 @@
             "concurrent"
         ],
         "profile_name": "default",
-        "project_name": "brevo-webhook",
+        "project_name": "brevo-webhook-staging",
         "runtime": "python3.12",
         "s3_bucket": "zappa-brevo-bot",
         "environment_variables": {
             "TELEGRAM_BOT_TOKEN": "8059286525:AAFNSrhVCk9ygOW2IvxDb6e4BSPCQPaOhNE",
             "TELEGRAM_CHAT_ID": "-4792671194",
-            "PORT": "6666"
+            "PORT": "6666",
+            "ENVIRONMENT": "Staging"
         },
         "keep_warm": false,
         "slim_handler": true
