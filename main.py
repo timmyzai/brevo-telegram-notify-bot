@@ -15,7 +15,7 @@ def webhook():
     if not data:
         return jsonify({"status": "error", "message": "Invalid JSON"}), 400
 
-    if(data.get("tag") != ENVIRONMENT):
+    if ENVIRONMENT not in data.get("tag", []):
         return jsonify({"status": "ignored", "message": "Environment mismatch"}), 200
 
     result, status = handle_event(data)
