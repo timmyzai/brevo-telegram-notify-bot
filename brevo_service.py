@@ -4,6 +4,7 @@ import os
 import requests
 from config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, ENVIRONMENT
 
+
 class EventsEnum(str, Enum):
     DELIVERED = "delivered"
     REQUEST = "request"
@@ -23,6 +24,7 @@ class EventsEnum(str, Enum):
     DEFERRED = "deferred"
     UNSUBSCRIBED = "unsubscribed"
 
+
 event_storage = {
     EventsEnum.HARD_BOUNCE: {"file": "hardbounce_emails.json", "emails": set()},
     EventsEnum.SOFT_BOUNCE: {"file": "softbounce_emails.json", "emails": set()},
@@ -33,6 +35,7 @@ event_storage = {
     EventsEnum.UNSUBSCRIBED: {"file": "unsubscribed_emails.json", "emails": set()},
     EventsEnum.SENT: {"file": "sent_emails.json", "emails": set()},
 }
+
 
 def load_event_emails():
     """Load all event emails from their respective JSON files into memory."""
@@ -47,12 +50,14 @@ def load_event_emails():
         else:
             meta["emails"].clear()
 
+
 def save_event_emails(event: EventsEnum):
     """Save emails for a specific event type."""
     meta = event_storage.get(event)
     if meta:
         with open(meta["file"], "w") as f:
             json.dump(list(meta["emails"]), f)
+
 
 def send_telegram_message(message: str):
     """Send a message to Telegram."""
@@ -67,7 +72,6 @@ def send_telegram_message(message: str):
 
 def process_generic_event(event_type: EventsEnum, data: dict):
     email = data.get("email")
-    sender = data.get("sender")
     if not email:
         return {"status": "error", "message": "Missing email field"}, 400
 
@@ -78,16 +82,26 @@ def process_generic_event(event_type: EventsEnum, data: dict):
     if email not in meta["emails"]:
         meta["emails"].add(email)
         save_event_emails(event_type)
-        message = (
-            f"New {event_type.value} email detected:\n"
-            f"Email: {email}\n"
-            f"Sender: {sender}\n"
-            f"Reason: {data.get('reason')}\n"
-            f"Timestamp: {data.get('date')}"
-        )
-        send_telegram_message(message)
+
+        message_lines = [
+            f"📩 **New {event_type.value.capitalize()} Event Detected**",
+            f"📧 Email: {email}",
+            f"💬 Subject: {data.get('subject')}",
+            f"📅 Timestamp: {data.get('date')}",
+            f"🌐 IP/Sender: {data.get('sending_ip')}"
+        ]
+
+        reason = data.get("reason")
+        if reason:
+            message_lines.append(f"❗ Reason: {reason}")
+
+        send_telegram_message("\n".join(message_lines))
         print(f"Notified new {event_type.value} email:", email)
-        return {"status": "success", "message": f"{event_type.value} email notified"}, 200
+
+        return {
+            "status": "success",
+            "message": f"{event_type.value} email notified",
+        }, 200
     else:
         print(f"{event_type.value} email already processed:", email)
         return {"status": "success", "message": "Email already processed"}, 200
