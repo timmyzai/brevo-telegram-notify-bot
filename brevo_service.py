@@ -82,13 +82,15 @@ def process_generic_event(event_type: EventsEnum, data: dict):
     if email not in meta["emails"]:
         meta["emails"].add(email)
         save_event_emails(event_type)
+        tags = data.get("tags", [])
+        environment = tags[0] if tags else "unknown"
 
         message_lines = [
             f"📩 **New {event_type.value.capitalize()} Event Detected**",
             f"📧 Email: {email}",
             f"💬 Subject: {data.get('subject')}",
             f"📅 Timestamp: {data.get('date')}",
-            f"🌐 IP/Sender: {data.get('sending_ip')}"
+            f"🏷️ Environment: {environment}"
         ]
 
         reason = data.get("reason")
