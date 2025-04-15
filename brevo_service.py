@@ -2,7 +2,7 @@ from enum import Enum
 import json
 import os
 import requests
-from config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
+from config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, ENVIRONMENT
 
 class EventsEnum(str, Enum):
     DELIVERED = "delivered"
@@ -67,6 +67,7 @@ def send_telegram_message(message: str):
 
 def process_generic_event(event_type: EventsEnum, data: dict):
     email = data.get("email")
+    sender = data.get("sender")
     if not email:
         return {"status": "error", "message": "Missing email field"}, 400
 
@@ -80,6 +81,7 @@ def process_generic_event(event_type: EventsEnum, data: dict):
         message = (
             f"New {event_type.value} email detected:\n"
             f"Email: {email}\n"
+            f"Sender: {sender}\n"
             f"Reason: {data.get('reason')}\n"
             f"Timestamp: {data.get('date')}"
         )
