@@ -4,6 +4,8 @@ logs/
 *.pyc
 __pycache__/
 .env
+.env.*
+!.env.template
 .vs/
 *.wat
 *.backup

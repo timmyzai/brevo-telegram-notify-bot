@@ -19,6 +19,7 @@ def load_environment_variables() -> dict:
         "TELEGRAM_CHAT_ID": load_env_variable("TELEGRAM_CHAT_ID"),
         "PORT": load_env_variable("PORT", "6666"),
         "ENVIRONMENT": load_env_variable("ENVIRONMENT"),
+        "DYNAMODB_TABLE_NAME": load_env_variable("DYNAMODB_TABLE_NAME"),
     }
 
     return env_vars
@@ -30,3 +31,4 @@ TELEGRAM_BOT_TOKEN = environment_variables["TELEGRAM_BOT_TOKEN"]
 TELEGRAM_CHAT_ID = environment_variables["TELEGRAM_CHAT_ID"]
 PORT = int(environment_variables["PORT"])
 ENVIRONMENT = environment_variables["ENVIRONMENT"]
+DYNAMODB_TABLE_NAME = environment_variables["DYNAMODB_TABLE_NAME"]

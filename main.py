@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 from config import PORT, ENVIRONMENT
-from brevo_service import load_event_emails, handle_event
+from brevo_service import handle_event
 
 app = Flask(__name__)
 
@@ -17,5 +17,4 @@ def webhook():
     return jsonify(result), status
 
 if __name__ == "__main__":
-    load_event_emails()
     app.run(host="0.0.0.0", port=PORT)
