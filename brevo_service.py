@@ -17,24 +17,19 @@ token_preview = TELEGRAM_BOT_TOKEN[:8] + "..." if TELEGRAM_BOT_TOKEN else "NOT S
 logger.info(f"Config loaded: TELEGRAM_BOT_TOKEN={token_preview}, TELEGRAM_CHAT_ID={TELEGRAM_CHAT_ID}, DYNAMODB_TABLE_NAME={DYNAMODB_TABLE_NAME}")
 
 
-class EventsEnum(str, Enum):
-    DELIVERED = "delivered"
-    REQUEST = "request"
-    CLICK = "click"
-    OPENED = "opened"
-    UNIQUE_OPENED = "uniqueOpened"
-    LIST_ADDITION = "listAddition"
-    CONTACT_UPDATED = "contactUpdated"
-    CONTACT_DELETED = "contactDeleted"
-    INBOUND_EMAIL_PROCESSED = "inboundEmailProcessed"
-    SENT = "sent"
-    HARD_BOUNCE = "hardBounce"
-    SOFT_BOUNCE = "softBounce"
-    BLOCKED = "blocked"
-    SPAM = "spam"
-    INVALID = "invalid"
+class NotifiableEvents(str, Enum):
+    # Transactional
+    HARD_BOUNCE = "hard_bounce"
+    SOFT_BOUNCE = "soft_bounce"
     DEFERRED = "deferred"
+    BLOCKED = "blocked"
+    ERROR = "error"
+    COMPLAINT = "complaint"
+    INVALID_EMAIL = "invalid_email"
     UNSUBSCRIBED = "unsubscribed"
+    # Marketing
+    SPAM = "spam"
+    UNSUBSCRIBE = "unsubscribe"
 
 
 def try_mark_email_processed(email: str, event_type: str) -> bool:
@@ -80,7 +75,7 @@ def send_telegram_message(message: str):
         return None
 
 
-def process_generic_event(event_type: EventsEnum, data: dict):
+def process_generic_event(event_type: NotifiableEvents, data: dict):
     email = data.get("email")
     if not email:
         logger.warning("Missing email field in event data")
@@ -119,7 +114,7 @@ def handle_event(data):
         return {"status": "error", "message": "Missing event field"}, 400
 
     try:
-        event_type = EventsEnum(event)
+        event_type = NotifiableEvents(event)
     except ValueError:
         logger.info(f"Unhandled event type: {event}")
         return {"status": "ignored", "message": "Unhandled event"}, 200
