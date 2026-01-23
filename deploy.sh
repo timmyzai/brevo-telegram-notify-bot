@@ -1,42 +1,37 @@
 #!/bin/bash
+set -e
+trap 'rm -f zappa_settings.json' EXIT
 
+VENV_DIR="venv"
+REGION="ap-southeast-1"
+
+# Ensure venv exists and activate it
+if [ ! -d "$VENV_DIR" ]; then
+    echo "Creating virtual environment..."
+    python3.12 -m venv "$VENV_DIR"
+    source "$VENV_DIR/bin/activate"
+    pip install --upgrade pip -q
+    pip install -r requirements.txt -q
+    echo "Virtual environment ready."
+else
+    source "$VENV_DIR/bin/activate"
+fi
+
+# Select stage
 echo "Select deployment stage:"
 select STAGE in "staging" "production"; do
-    if [[ -n "$STAGE" ]]; then
-        echo "Selected stage: $STAGE"
-        break
-    else
-        echo "Invalid option. Please try again."
-    fi
+    [ -n "$STAGE" ] && break
 done
 
-echo "Select deployment action:"
-select ACTION in "deploy" "update" "quit"; do
-    case $ACTION in
-        deploy|update)
-            echo "Selected action: $ACTION"
-            break
-            ;;
-        quit)
-            echo "Exiting."
-            exit 0
-            ;;
-        *)
-            echo "Invalid option. Please try again."
-            ;;
-    esac
-done
-
+# Load env file
 ENV_FILE=".env.${STAGE}"
 if [ ! -f "$ENV_FILE" ]; then
-    echo "❌ File '$ENV_FILE' not found. Exiting."
+    echo "Error: $ENV_FILE not found."
     exit 1
 fi
 
+# Ensure DynamoDB table exists
 TABLE_NAME=$(grep DYNAMODB_TABLE_NAME "$ENV_FILE" | cut -d '=' -f2)
-REGION="ap-southeast-1"
-
-echo "Checking DynamoDB table '$TABLE_NAME'..."
 if ! aws dynamodb describe-table --table-name "$TABLE_NAME" --region "$REGION" > /dev/null 2>&1; then
     echo "Creating DynamoDB table '$TABLE_NAME'..."
     aws dynamodb create-table \
@@ -49,22 +44,17 @@ if ! aws dynamodb describe-table --table-name "$TABLE_NAME" --region "$REGION" >
             AttributeName=event_type,KeyType=RANGE \
         --billing-mode PAY_PER_REQUEST \
         --region "$REGION"
-    echo "Waiting for table to become active..."
     aws dynamodb wait table-exists --table-name "$TABLE_NAME" --region "$REGION"
-    echo "✅ Table created."
-else
-    echo "✅ Table already exists."
 fi
 
-echo "Injecting environment variables from $ENV_FILE into $STAGE stage..."
+# Generate zappa_settings.json from env
 python initial_zappa.py "$STAGE" "$ENV_FILE"
-if [ $? -ne 0 ]; then
-    echo "❌ Injection failed. Exiting."
-    exit 1
+
+# Deploy or update
+if zappa status "$STAGE" > /dev/null 2>&1; then
+    zappa update "$STAGE"
+else
+    zappa deploy "$STAGE"
 fi
 
-echo "Running: zappa $ACTION $STAGE"
-zappa $ACTION $STAGE
-
-rm zappa_settings.json
-echo "✅ Deployment finished."
+echo "Done."

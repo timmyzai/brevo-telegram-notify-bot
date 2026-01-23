@@ -1,6 +1,5 @@
 import json
 import sys
-from dotenv import dotenv_values
 
 TEMPLATE = "zappa_settings.template.json"
 TARGET = "zappa_settings.json"
@@ -21,7 +20,14 @@ def inject_env(stage_name: str, env_file: str):
     }
 
     # Load environment-specific variables
-    env = dotenv_values(env_file)
+    env = {}
+    with open(env_file, "r") as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            key, _, value = line.partition("=")
+            env[key.strip()] = value.strip()
 
     # Override ENVIRONMENT with capitalized stage name (matches Brevo tags)
     env["ENVIRONMENT"] = stage_name.capitalize()
