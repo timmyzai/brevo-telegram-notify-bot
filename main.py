@@ -33,6 +33,11 @@ def webhook():
         logger.info(f"Skipping: ENVIRONMENT '{ENVIRONMENT}' not in tag '{tag}'")
         return jsonify({"status": "ignored", "message": "Environment mismatch"}), 200
 
+    tags = data.get("tags", [])
+    if "skip" in tag or "skip" in tags:
+        logger.info(f"Skipping: 'skip' tag found for email={email}")
+        return jsonify({"status": "ignored", "message": "Skip tag present"}), 200
+
     result, status = handle_event(data)
     logger.info(f"Event processed: email={email}, event={event}, status={status}, result={result}")
     return jsonify(result), status
