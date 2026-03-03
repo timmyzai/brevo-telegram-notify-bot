@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime, timezone
 from flask import Flask, request, jsonify
 from config import PORT, ENVIRONMENT
 from brevo_service import handle_event
@@ -28,6 +29,20 @@ def webhook():
     tag = data.get("tag", "")
 
     logger.info(f"Webhook received: event={event}, email={email}, tag={tag}")
+
+    event_date_str = data.get("date", "")
+    if event_date_str:
+        try:
+            event_date = datetime.fromisoformat(event_date_str.replace("Z", "+00:00")).date()
+            today = datetime.now(timezone.utc).date()
+            if event_date < today:
+                logger.info(f"Skipping: event from {event_date}, before today ({today})")
+                return jsonify({"status": "ignored", "message": f"Old event from {event_date}"}), 200
+        except (ValueError, TypeError):
+            logger.warning(f"Could not parse event date: {event_date_str}")
+    else:
+        logger.info(f"Skipping: no date field in event for email={email}")
+        return jsonify({"status": "ignored", "message": "Missing event date"}), 200
 
     if ENVIRONMENT not in tag:
         logger.info(f"Skipping: ENVIRONMENT '{ENVIRONMENT}' not in tag '{tag}'")
